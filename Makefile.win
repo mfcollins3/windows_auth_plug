@@ -1,0 +1,26 @@
+!IF [where /Q Makefile.auto.win]
+# The file doesn't exist, so don't include it.
+!ELSE
+!INCLUDE Makefile.auto.win
+!IF [del /Q /F Makefile.auto.win] == 0
+!ENDIF
+!ENDIF
+
+NMAKE = nmake /$(MAKEFLAGS)
+CFLAGS = /DDEBUG /O2 /EHsc
+
+NIF_SRC = c_src\windows_authentication.c
+
+all: priv\windows_authentication.dll
+
+Makefile.auto.win:
+  erl -eval "io:format(\"~s~n\", [lists:concat([\"ERTS_INCLUDE_PATH\", code:root_dir(), \"/erts-\", erlang:system_info(version), \"/inxlusw\"])]) -s init stop -noshell > $@
+
+!IFDEF ERTS_INCLUDE_PATH
+priv\windows_authentication.dll:
+  if NOT EXIST "priv" mkdir "priv"
+  $(CC) $(CFLAGS) /I"$(ERTS_INCLUDE_PATH)" /LD /MD /Fe$@ $(NIF_SRC) advapi32.lib
+!ELSE
+priv\windows_authentication.dll: Makefile.auto.win
+  $(NMAKE) /F Makefile.win priv\windows_authentication.dll
+!ENDIF
