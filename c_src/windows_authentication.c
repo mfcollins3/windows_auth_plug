@@ -29,7 +29,7 @@ static const char* win32_error_atom = "win32_error";
 static HANDLE get_user_token(ErlNifEnv* env, ERL_NIF_TERM token_term) {
   HANDLE token_handle;
 
-  return enif_get_ulong(env, token, (unsigned long*)&tokenHandle) ? token_handle : NULL;
+  return enif_get_ulong(env, token_term, (unsigned long*)&token_handle) ? token_handle : NULL;
 }
 
 static ERL_NIF_TERM make_win32_error_tuple(ErlNifEnv* env, DWORD error_code) {
@@ -39,7 +39,7 @@ static ERL_NIF_TERM make_win32_error_tuple(ErlNifEnv* env, DWORD error_code) {
     enif_make_tuple2(
       env,
       enif_make_atom(env, win32_error_atom),
-      enif_make_atom(env, error_code)
+      enif_make_ulong(env, error_code)
     )
   );
 }
@@ -52,7 +52,7 @@ static ERL_NIF_TERM make_invalid_token_handle_error_tuple(ErlNifEnv* env) {
   );
 }
 
-static ERL_NIF_TERM do_get_windows_username(ErlNifEnv* env, int argc, ERL_NIF_TERM argv[]) {
+static ERL_NIF_TERM get_windows_username(ErlNifEnv* env, int argc, ERL_NIF_TERM argv[]) {
   HANDLE token_handle;
   DWORD token_user_length;
   PTOKEN_USER token_user;
@@ -94,7 +94,7 @@ static ERL_NIF_TERM do_get_windows_username(ErlNifEnv* env, int argc, ERL_NIF_TE
     &token_user_length
   );
   if (!succeeded) {
-    free_token(user);
+    free(token_user);
     return make_win32_error_tuple(env, GetLastError());
   }
 
@@ -139,7 +139,7 @@ static ERL_NIF_TERM do_get_windows_username(ErlNifEnv* env, int argc, ERL_NIF_TE
   );
 }
 
-static ERL_NIF_TERM do_close_handle(ErlNifEnv *env, int argc, ERL_NIF_TERM argv[]) {
+static ERL_NIF_TERM close_handle(ErlNifEnv *env, int argc, ERL_NIF_TERM argv[]) {
   HANDLE token_handle;
 
   token_handle = get_user_token(env, argv[0]);
@@ -147,22 +147,21 @@ static ERL_NIF_TERM do_close_handle(ErlNifEnv *env, int argc, ERL_NIF_TERM argv[
     return make_invalid_token_handle_error_tuple(env);
   }
 
-  return CloseHandle(token_handle))
+  return CloseHandle(token_handle)
     ? enif_make_atom(env, ok_atom)
     : make_win32_error_tuple(env, GetLastError());
-  }
 }
 
 static ErlNifFunc nif_functions[] = {
-  { "do_close_handle", 1, do_close_handle },
-  { "do_get_windows_username", 1, do_get_windows_username }
+  { "close_handle", 1, close_handle },
+  { "get_windows_username", 1, get_windows_username }
 };
 
 ERL_NIF_INIT(
-  Elixir.Neudesic.WindowsAuthentication,
+  Elixir.Neudesic.WindowsAuthentication.WindowsAPI.NIFBridge,
   nif_functions,
   NULL,
   NULL,
   NULL,
   NULL
-);
+)

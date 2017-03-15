@@ -14,12 +14,12 @@ NIF_SRC = c_src\windows_authentication.c
 all: priv\windows_authentication.dll
 
 Makefile.auto.win:
-  erl -eval "io:format(\"~s~n\", [lists:concat([\"ERTS_INCLUDE_PATH\", code:root_dir(), \"/erts-\", erlang:system_info(version), \"/inxlusw\"])]) -s init stop -noshell > $@
+  erl -eval "io:format(\"~s~n\", [lists:concat([\"ERTS_INCLUDE_PATH=\", code:root_dir(), \"/erts-\", erlang:system_info(version), \"/include\"])])" -s init stop -noshell > $@
 
 !IFDEF ERTS_INCLUDE_PATH
-priv\windows_authentication.dll:
+priv\windows_authentication.dll: $(NIF_SRC)
   if NOT EXIST "priv" mkdir "priv"
-  $(CC) $(CFLAGS) /I"$(ERTS_INCLUDE_PATH)" /LD /MD /Fe$@ $(NIF_SRC) advapi32.lib
+  $(CC) $(CFLAGS) /I"$(ERTS_INCLUDE_PATH)" /LD /MD /Zi /Fe$@ $(NIF_SRC) advapi32.lib
 !ELSE
 priv\windows_authentication.dll: Makefile.auto.win
   $(NMAKE) /F Makefile.win priv\windows_authentication.dll
