@@ -7,6 +7,8 @@ install:
   - SET PATH=C:\ProgramData\chocolatey\lib\Elixir\bin;%PATH%
 
 build_script:
+  - dir "C:\Program Files (x86)\Microsoft Visual Studio*"
+  - dir /S /AD "C:\Program Files (x86)\Microsoft Visual Studio"
   - call "C:\Program Files (x86)\Microsoft Visual Studio 15.0\VC\vcvarsall.bat" amd64
   - mix local.hex --force
   - mix deps.get
