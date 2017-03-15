@@ -1,0 +1,13 @@
+version: 0.1.0+{build}
+
+image: Visual Studio 2017
+
+install:
+  - cinst elixir
+  - SET PATH=C:\ProgramData\chocolatey\lib\Elixir\bin;%PATH%
+
+build_script:
+  - mix local.hex --force
+  - mix deps.get
+  - mix compile
+  - mix test
